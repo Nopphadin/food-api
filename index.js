@@ -27,7 +27,16 @@ app.get('/', (req, res) => {
         <div style="font-family: Arial, sans-serif; text-align: center; padding-top: 50px;">
             <h1>🚀 Food Delivery API is Running!</h1>
             <p>Welcome to the backend service.</p>
-            <p>👉 <a href="/api-docs">Open API Documentation (Swagger UI)</a></p>
+            <p>
+                👉 <a href="/api-docs" style="color: blue; font-weight: bold; text-decoration: none; font-size: 1.2em;">
+                    Open Swagger UI (Default)
+                </a>
+            </p>
+            <p>
+                👉 <a href="/docs" style="color: green; font-weight: bold; text-decoration: none; font-size: 1.2em;">
+                    Open Swagger HTML (Vercel Fix)
+                </a>
+            </p>
         </div>
     `);
 });
@@ -45,15 +54,24 @@ app.use('/routes/restaurants', require('./routes/restaurants'));
 app.use('/routes/menus', require('./routes/menus'));
 
 // 4. Protected Routes (ต้อง Login ถึงจะเข้าได้)
-// ใส่ authenticateToken คั่นไว้ตรงกลาง
 app.use('/routes/orders', authenticateToken, require('./routes/orders'));
 app.use('/routes/payments', authenticateToken, require('./routes/payments'));
 app.use('/routes/shippings', authenticateToken, require('./routes/shippings'));
 
-// Swagger UI Route
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+// --- Swagger Configuration ---
 
-// Serve Swagger HTML static page
+// 1. สร้าง Endpoint สำหรับส่งไฟล์ JSON ดิบๆ (จำเป็นสำหรับ swagger.html)
+app.get('/swagger.json', (req, res) => {
+    res.json(swaggerDocument);
+});
+
+// 2. Swagger UI แบบ Default (เพิ่ม CSS CDN แก้ปัญหาหน้าขาวบน Vercel)
+const CSS_URL = "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui.min.css";
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, {
+    customCssUrl: CSS_URL
+}));
+
+// 3. Serve Swagger HTML Static Page (หน้าเว็บสำรอง)
 app.get('/docs', (req, res) => {
     res.sendFile(path.join(__dirname, 'swagger.html'));
 });
