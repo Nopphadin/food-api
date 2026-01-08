@@ -1,0 +1,391 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Food Delivery API",
+    "description": "API Documentation for Food Delivery System covering Customers, Restaurants, Menus, Orders, Payments, and Shipping. (Now with JWT Authentication)",
+    "version": "1.0.0",
+    "contact": {
+      "email": "developer@example.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Local Development Server"
+    }
+  ],
+  "tags": [
+    { "name": "Auth", "description": "Authentication operations" },
+    { "name": "Customers", "description": "Operations about customers" },
+    { "name": "Restaurants", "description": "Operations about restaurants" },
+    { "name": "Menus", "description": "Operations about food menus" },
+    { "name": "Orders", "description": "Operations about orders (Protected)" },
+    { "name": "Payments", "description": "Operations about payments (Protected)" },
+    { "name": "Shippings", "description": "Operations about shipping (Protected)" }
+  ],
+  "paths": {
+    "/routes/auth/login": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Login to get JWT Token",
+        "description": "Use username and password to obtain a bearer token for protected routes.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": { "type": "string", "example": "somchai" },
+                  "password": { "type": "string", "example": "secret123" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login Successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string" },
+                    "token": { "type": "string", "description": "JWT Token for Authorization header" },
+                    "user_id": { "type": "integer" },
+                    "fullname": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Invalid credentials" }
+        }
+      }
+    },
+    "/routes/customers": {
+      "get": {
+        "tags": ["Customers"],
+        "summary": "Get all customers (Protected)",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "Success" }, "401": { "description": "Unauthorized" } }
+      },
+      "post": {
+        "tags": ["Customers"],
+        "summary": "Register a new customer (Public)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/Customer" }
+            }
+          }
+        },
+        "responses": { "201": { "description": "Customer Created" } }
+      }
+    },
+    "/routes/customers/{id}": {
+      "get": {
+        "tags": ["Customers"],
+        "summary": "Get customer by ID (Protected)",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "Success" }, "404": { "description": "Not Found" }, "401": { "description": "Unauthorized" } }
+      },
+      "put": {
+        "tags": ["Customers"],
+        "summary": "Update customer details (Protected)",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "requestBody": {
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Customer" } } }
+        },
+        "responses": { "200": { "description": "Updated" }, "401": { "description": "Unauthorized" } }
+      },
+      "delete": {
+        "tags": ["Customers"],
+        "summary": "Delete a customer (Protected)",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "Deleted" }, "401": { "description": "Unauthorized" } }
+      }
+    },
+    "/routes/restaurants": {
+      "get": {
+        "tags": ["Restaurants"],
+        "summary": "Get all restaurants",
+        "responses": { "200": { "description": "Success" } }
+      },
+      "post": {
+        "tags": ["Restaurants"],
+        "summary": "Create a restaurant",
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Restaurant" } } }
+        },
+        "responses": { "201": { "description": "Created" } }
+      }
+    },
+    "/routes/restaurants/{id}": {
+      "get": {
+        "tags": ["Restaurants"],
+        "summary": "Get restaurant by ID",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "Success" }, "404": { "description": "Not Found" } }
+      },
+      "put": {
+        "tags": ["Restaurants"],
+        "summary": "Update restaurant",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "requestBody": { "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Restaurant" } } } },
+        "responses": { "200": { "description": "Updated" } }
+      },
+      "delete": {
+        "tags": ["Restaurants"],
+        "summary": "Delete restaurant",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "Deleted" } }
+      }
+    },
+    "/routes/menus": {
+      "get": {
+        "tags": ["Menus"],
+        "summary": "Get all menus (Optional: filter by restaurant_id)",
+        "parameters": [
+          { "name": "restaurant_id", "in": "query", "schema": { "type": "integer" }, "description": "Filter by Restaurant ID" }
+        ],
+        "responses": { "200": { "description": "Success" } }
+      },
+      "post": {
+        "tags": ["Menus"],
+        "summary": "Add a new menu item",
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Menu" } } }
+        },
+        "responses": { "201": { "description": "Created" } }
+      }
+    },
+    "/routes/menus/{id}": {
+      "get": {
+        "tags": ["Menus"],
+        "summary": "Get menu by ID",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "Success" } }
+      },
+      "put": {
+        "tags": ["Menus"],
+        "summary": "Update menu item",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "requestBody": { "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Menu" } } } },
+        "responses": { "200": { "description": "Updated" } }
+      },
+      "delete": {
+        "tags": ["Menus"],
+        "summary": "Delete menu item",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "Deleted" } }
+      }
+    },
+    "/routes/orders": {
+      "get": {
+        "tags": ["Orders"],
+        "summary": "Get all orders (Protected)",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "Success" }, "401": { "description": "Unauthorized" } }
+      },
+      "post": {
+        "tags": ["Orders"],
+        "summary": "Place a new order (Protected)",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Order" } } }
+        },
+        "responses": { "201": { "description": "Order Placed" }, "401": { "description": "Unauthorized" } }
+      }
+    },
+    "/routes/orders/{id}": {
+      "get": {
+        "tags": ["Orders"],
+        "summary": "Get order by ID (Protected)",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "Success" }, "401": { "description": "Unauthorized" } }
+      },
+      "put": {
+        "tags": ["Orders"],
+        "summary": "Update order details (Protected)",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "requestBody": { "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Order" } } } },
+        "responses": { "200": { "description": "Updated" }, "401": { "description": "Unauthorized" } }
+      },
+      "delete": {
+        "tags": ["Orders"],
+        "summary": "Delete/Cancel order (Protected)",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "Deleted" }, "401": { "description": "Unauthorized" } }
+      }
+    },
+    "/routes/payments": {
+      "get": {
+        "tags": ["Payments"],
+        "summary": "Get all payments (Protected)",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "Success" }, "401": { "description": "Unauthorized" } }
+      },
+      "post": {
+        "tags": ["Payments"],
+        "summary": "Record a payment (Protected)",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Payment" } } }
+        },
+        "responses": { "201": { "description": "Recorded" }, "401": { "description": "Unauthorized" } }
+      }
+    },
+    "/routes/payments/order/{orderId}": {
+      "get": {
+        "tags": ["Payments"],
+        "summary": "Get payments by Order ID (Protected)",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "orderId", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "Success" }, "401": { "description": "Unauthorized" } }
+      }
+    },
+    "/routes/payments/{id}": {
+      "put": {
+        "tags": ["Payments"],
+        "summary": "Update payment status (Protected)",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "requestBody": { "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Payment" } } } },
+        "responses": { "200": { "description": "Updated" }, "401": { "description": "Unauthorized" } }
+      },
+      "delete": {
+        "tags": ["Payments"],
+        "summary": "Delete payment record (Protected)",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "Deleted" }, "401": { "description": "Unauthorized" } }
+      }
+    },
+    "/routes/shippings": {
+      "get": {
+        "tags": ["Shippings"],
+        "summary": "Get all shipping records (Protected)",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "Success" }, "401": { "description": "Unauthorized" } }
+      },
+      "post": {
+        "tags": ["Shippings"],
+        "summary": "Create shipping info (Protected)",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Shipping" } } }
+        },
+        "responses": { "201": { "description": "Created" }, "401": { "description": "Unauthorized" } }
+      }
+    },
+    "/routes/shippings/{id}": {
+      "get": {
+        "tags": ["Shippings"],
+        "summary": "Get shipping info by ID (Protected)",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "Success" }, "401": { "description": "Unauthorized" } }
+      },
+      "put": {
+        "tags": ["Shippings"],
+        "summary": "Update shipping status (Protected)",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "requestBody": { "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Shipping" } } } },
+        "responses": { "200": { "description": "Updated" }, "401": { "description": "Unauthorized" } }
+      },
+      "delete": {
+        "tags": ["Shippings"],
+        "summary": "Delete shipping info (Protected)",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "Deleted" }, "401": { "description": "Unauthorized" } }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "Customer": {
+        "type": "object",
+        "properties": {
+          "fullname": { "type": "string", "example": "Somchai Jaidee" },
+          "address": { "type": "string", "example": "123 Bangkok" },
+          "phone": { "type": "string", "example": "0812345678" },
+          "username": { "type": "string", "example": "somchai" },
+          "password": { "type": "string", "example": "secret123" },
+          "email": { "type": "string", "example": "somchai@email.com" }
+        }
+      },
+      "Restaurant": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "example": "Pad Thai Shop" },
+          "address": { "type": "string", "example": "Siam Square" },
+          "phone": { "type": "string", "example": "020001111" },
+          "description": { "type": "string", "example": "Best Pad Thai in town" }
+        }
+      },
+      "Menu": {
+        "type": "object",
+        "properties": {
+          "restaurant_id": { "type": "integer", "example": 1 },
+          "name": { "type": "string", "example": "Pad Thai Goong" },
+          "price": { "type": "number", "format": "float", "example": 80.00 },
+          "category": { "type": "string", "example": "Main Dish" },
+          "description": { "type": "string", "example": "Fried noodles with shrimp" }
+        }
+      },
+      "Order": {
+        "type": "object",
+        "properties": {
+          "customer_id": { "type": "integer", "example": 1 },
+          "restaurant_id": { "type": "integer", "example": 1 },
+          "menu_id": { "type": "integer", "example": 5 },
+          "qty": { "type": "integer", "example": 2 },
+          "total": { "type": "number", "format": "float", "example": 160.00 },
+          "status": { "type": "string", "example": "pending" }
+        }
+      },
+      "Payment": {
+        "type": "object",
+        "properties": {
+          "order_id": { "type": "integer", "example": 10 },
+          "method": { "type": "string", "example": "Credit Card" },
+          "amount": { "type": "number", "format": "float", "example": 160.00 },
+          "status": { "type": "string", "example": "completed" }
+        }
+      },
+      "Shipping": {
+        "type": "object",
+        "properties": {
+          "order_id": { "type": "integer", "example": 10 },
+          "address": { "type": "string", "example": "456 Sukhumvit Soi 10" },
+          "receiver": { "type": "string", "example": "Somsri" },
+          "phone": { "type": "string", "example": "0899998888" },
+          "status": { "type": "string", "example": "delivering" }
+        }
+      }
+    }
+  }
+}
